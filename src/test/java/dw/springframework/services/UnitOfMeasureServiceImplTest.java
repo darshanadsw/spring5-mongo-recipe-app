@@ -3,11 +3,12 @@ package dw.springframework.services;
 import dw.springframework.commands.UnitOfMeasureCommand;
 import dw.springframework.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import dw.springframework.domain.UnitOfMeasure;
-import dw.springframework.repositories.UnitOfMeasureRepository;
+import dw.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +22,7 @@ public class UnitOfMeasureServiceImplTest {
     UnitOfMeasureService service;
 
     @Mock
-    UnitOfMeasureRepository unitOfMeasureRepository;
+    UnitOfMeasureReactiveRepository unitOfMeasureRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -42,13 +43,13 @@ public class UnitOfMeasureServiceImplTest {
         uom2.setId("2");
         unitOfMeasures.add(uom2);
 
-        when(unitOfMeasureRepository.findAll()).thenReturn(unitOfMeasures);
+        when(unitOfMeasureRepository.findAll()).thenReturn(Flux.just(uom1,uom2));
 
         //when
-        Set<UnitOfMeasureCommand> commands = service.listAllUoms();
+        Flux<UnitOfMeasureCommand> commands = service.listAllUoms();
 
         //then
-        assertEquals(2, commands.size());
+        assertEquals(2, commands.count().block().longValue());
         verify(unitOfMeasureRepository, times(1)).findAll();
     }
 
